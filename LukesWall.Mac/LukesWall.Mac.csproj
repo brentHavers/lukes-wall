@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <RootNamespace>LukesWall</RootNamespace>
+    <AssemblyName>LukesWall.Mac</AssemblyName>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
+    <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ArcEngine.Core.Mac\ArcEngine.Core.Mac.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MonoGameContentReference Include="Content\Content.mgcb" />
+  </ItemGroup>
+
+  <!-- Same compile set as LukesWall.csproj except Properties/AssemblyInfo.cs; shared Program.cs -->
+  <ItemGroup>
+    <Compile Include="..\Program.cs" Link="Program.cs" />
+    <Compile Include="..\Components\WeaponBullet.cs" Link="Components\WeaponBullet.cs" />
+    <Compile Include="..\Game\BulletManager.cs" Link="Game\BulletManager.cs" />
+    <Compile Include="..\Game\CollisionKinds.cs" Link="Game\CollisionKinds.cs" />
+    <Compile Include="..\Game\EnemyBulletScript.cs" Link="Game\EnemyBulletScript.cs" />
+    <Compile Include="..\Game\DroneEnemyScript.cs" Link="Game\DroneEnemyScript.cs" />
+    <Compile Include="..\Game\EnemySquadron.cs" Link="Game\EnemySquadron.cs" />
+    <Compile Include="..\Game\EntityFactory.cs" Link="Game\EntityFactory.cs" />
+    <Compile Include="..\Game\FriendlyBulletScript.cs" Link="Game\FriendlyBulletScript.cs" />
+    <Compile Include="..\Game\ShootingEnemyScript.cs" Link="Game\ShootingEnemyScript.cs" />
+    <Compile Include="..\Game\PlayerScript.cs" Link="Game\PlayerScript.cs" />
+    <Compile Include="..\Game\PowerupScript.cs" Link="Game\PowerupScript.cs" />
+    <Compile Include="..\Game\LukesWallScript.cs" Link="Game\LukesWallScript.cs" />
+    <Compile Include="..\Screens\GameplayScreen.cs" Link="Screens\GameplayScreen.cs" />
+    <Compile Include="..\Screens\LoadingScreen.cs" Link="Screens\LoadingScreen.cs" />
+    <Compile Include="..\Screens\LogoScreen.cs" Link="Screens\LogoScreen.cs" />
+    <Compile Include="..\Screens\MainMenuScreen.cs" Link="Screens\MainMenuScreen.cs" />
+    <Compile Include="..\Screens\SplashScreen.cs" Link="Screens\SplashScreen.cs" />
+    <Compile Include="..\LukesWall.cs" Link="LukesWall.cs" />
+  </ItemGroup>
+
+  <Target Name="AddFlatMonoGameContentForOutput" AfterTargets="RunContentBuilder" BeforeTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <_BuiltGameXnb Include="$(MSBuildProjectDirectory)/Content/bin/**/*.xnb" />
+      <Content Include="@(_BuiltGameXnb)" Link="Content\%(_BuiltGameXnb.Filename)%(_BuiltGameXnb.Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>
