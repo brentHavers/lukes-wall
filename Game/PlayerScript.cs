@@ -21,9 +21,13 @@ namespace SoManyPixels.LukesWall.Game
         const float Y_ACCELERATION = 2250.0f;   // px/s^2
         const float X_DECELERATION = 600.0f;   // px/s^2
         const float Y_DECELERATION = 600.0f;   // px/s^2
+        const float BULLET_SPEED = 18.0f;
+        const int PLAYER_SPRITE_WIDTH = 104;
+        const int PLAYER_SPRITE_HEIGHT = 96;
         A2DIntVector2 collisionActivatePosition = A2DIntVector2.Zero;
 
         readonly BulletManager _bulletManager;
+        A2DInputSystem _inputSystem;
 
         int _collisionCount = 0;
         float _velocityX = 0.0f;
@@ -40,8 +44,10 @@ namespace SoManyPixels.LukesWall.Game
 
         public override bool OnUpdate(float elapsedtime)
         {
+            EnsureInputSystem();
+
             A2DTransformComponent transformComponent = GetComponent<A2DTransformComponent>();
-            A2DFloatVector leftStick = _entityWorld.GetSystem<A2DInputSystem>().GetPrimaryLeftStick();
+            A2DFloatVector leftStick = _inputSystem.GetPrimaryLeftStick();
             float dt = elapsedtime / 1000.0f;
 
             InitializeMovementState(transformComponent);
@@ -69,13 +75,12 @@ namespace SoManyPixels.LukesWall.Game
 
             _collisionCount = 0;
 
-
             return true; // TODO: return type/value?
         }
 
         void TryFire()
         {
-            if (_bulletManager == null || !IsFirePressedNew())
+            if (_bulletManager == null || !TryGetFireDirection(out A2DFloatVector fireDirection))
             {
                 return;
             }
@@ -93,41 +98,99 @@ namespace SoManyPixels.LukesWall.Game
                 return;
             }
 
-            int bulletYOffset = 28;
+            float aimX = fireDirection.X / BULLET_SPEED;
+            float aimY = fireDirection.Y / BULLET_SPEED;
+            float spreadX = -aimY;
+            float spreadY = aimX;
+
             A2DIntVector2 playerLocation = transformComponent.Position;
+            int originX = playerLocation.X + (PLAYER_SPRITE_WIDTH / 2);
+            int originY = playerLocation.Y + (PLAYER_SPRITE_HEIGHT / 2);
+            int muzzleDistance = PLAYER_SPRITE_WIDTH / 2;
 
             for (int bulletCounter = 0; bulletCounter < bulletCount; bulletCounter++)
             {
-                _bulletManager.SpawnBullet(
-                    new A2DIntVector2(playerLocation.X + 68, playerLocation.Y + bulletYOffset),
-                    new A2DFloatVector(18, 0));
+                float spreadOffset = 28 + (bulletCounter * (56 / bulletCount)) - (PLAYER_SPRITE_HEIGHT / 2);
 
-                bulletYOffset += 56 / bulletCount;
+                _bulletManager.SpawnBullet(
+                    new A2DIntVector2(
+                        (int)Math.Round(originX + (aimX * muzzleDistance) + (spreadX * spreadOffset)),
+                        (int)Math.Round(originY + (aimY * muzzleDistance) + (spreadY * spreadOffset))),
+                    fireDirection);
             }
         }
 
-        bool IsFirePressedNew()
+        void EnsureInputSystem()
         {
-            A2DInputSystem inputSystem = _entityWorld.GetSystem<A2DInputSystem>();
-            if (inputSystem == null)
+            if (_inputSystem != null)
+            {
+                return;
+            }
+
+            _inputSystem = _entityWorld.GetSystem<A2DInputSystem>();
+            if (_inputSystem == null)
+            {
+                throw new InvalidOperationException(
+                    "PlayerScript requires A2DInputSystem to be registered on the entity world before update.");
+            }
+        }
+
+        bool TryGetFireDirection(out A2DFloatVector fireDirection)
+        {
+            fireDirection = A2DFloatVector.Zero;
+
+            A2DFloatVector stick = _inputSystem.GetPrimaryRightStick();
+            if (IsZero(stick))
+            {
+                stick = GetKeyboardAimStick();
+            }
+
+            if (IsZero(stick))
             {
                 return false;
             }
 
-            for (int slot = 0; slot < 4; slot++)
-            {
-                GamePadState gamePadState = inputSystem.GetGamePadState(slot);
-                if (!gamePadState.IsConnected)
-                {
-                    continue;
-                }
+            float screenX = stick.X;
+            float screenY = -stick.Y;
+            float magnitude = (float)Math.Sqrt((screenX * screenX) + (screenY * screenY));
+            fireDirection = new A2DFloatVector(
+                (screenX / magnitude) * BULLET_SPEED,
+                (screenY / magnitude) * BULLET_SPEED);
+            return true;
+        }
 
-                GamePadState previousGamePadState = inputSystem.GetPreviousGamePadState(slot);
-                return gamePadState.IsButtonDown(Buttons.A) && !previousGamePadState.IsButtonDown(Buttons.A);
+        A2DFloatVector GetKeyboardAimStick()
+        {
+            KeyboardState keyboardState = _inputSystem.KeyboardState;
+            float x = 0.0f;
+            float y = 0.0f;
+
+            if (keyboardState.IsKeyDown(Keys.I))
+            {
+                y += 1.0f;
             }
 
-            return inputSystem.KeyboardState.IsKeyDown(Keys.NumPad2)
-                && !inputSystem.PreviousKeyboardState.IsKeyDown(Keys.NumPad2);
+            if (keyboardState.IsKeyDown(Keys.K))
+            {
+                y -= 1.0f;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.J))
+            {
+                x -= 1.0f;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.L))
+            {
+                x += 1.0f;
+            }
+
+            return new A2DFloatVector(x, y);
+        }
+
+        static bool IsZero(A2DFloatVector vector)
+        {
+            return vector.X == 0.0f && vector.Y == 0.0f;
         }
 
         private static float MoveToward(float currentValue, float targetValue, float maxDelta)
