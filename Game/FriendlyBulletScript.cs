@@ -21,7 +21,10 @@ namespace SoManyPixels.LukesWall.Game
             transformComponent.PositionX += (int)transformComponent.Direction.X * (int)(0.2f * elapsedtime);
             transformComponent.PositionY += (int)transformComponent.Direction.Y * (int)(0.2f * elapsedtime);
 
-            if (transformComponent.PositionX > 1920)
+            if (transformComponent.PositionX < -32
+                || transformComponent.PositionX > 1920
+                || transformComponent.PositionY < -32
+                || transformComponent.PositionY > 1080)
             {
                 StopSelf();
             }
