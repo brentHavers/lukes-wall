@@ -37,6 +37,7 @@
     <Compile Include="..\Game\PlayerScript.cs" Link="Game\PlayerScript.cs" />
     <Compile Include="..\Game\PowerupScript.cs" Link="Game\PowerupScript.cs" />
     <Compile Include="..\Game\LukesWallScript.cs" Link="Game\LukesWallScript.cs" />
+    <Compile Include="..\Game\SplashLogoScript.cs" Link="Game\SplashLogoScript.cs" />
     <Compile Include="..\Screens\GameplayScreen.cs" Link="Screens\GameplayScreen.cs" />
     <Compile Include="..\Screens\LoadingScreen.cs" Link="Screens\LoadingScreen.cs" />
     <Compile Include="..\Screens\LogoScreen.cs" Link="Screens\LogoScreen.cs" />
