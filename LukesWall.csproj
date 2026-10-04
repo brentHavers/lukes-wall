@@ -56,6 +56,7 @@
     <Compile Include="Game\PlayerScript.cs" />
     <Compile Include="Game\PowerupScript.cs" />
     <Compile Include="Game\LukesWallScript.cs" />
+    <Compile Include="Game\SplashLogoScript.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Screens\GameplayScreen.cs" />
